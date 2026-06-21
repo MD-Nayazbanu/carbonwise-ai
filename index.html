@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarbonWise AI - Carbon Footprint Tracker & Simulator</title>
+  <meta name="description" content="Track your carbon footprint, simulate green lifestyle changes, earn badges, and sync your sustainability journey with CarbonWise AI.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Skip to main content for keyboard accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Firebase status & Sync banner -->
+  <div class="status-bar" role="status" aria-live="polite">
+    <div class="container status-container">
+      <div class="status-left">
+        <span>Environment: <strong>Local Sandbox</strong></span>
+        <span class="status-pill offline" id="db-status-pill">
+          <span class="status-dot"></span>
+          <span id="db-status-text">Cloud Sync Offline</span>
+        </span>
+      </div>
+      <div class="status-right">
+        <span id="sync-profile-info">Profile ID: <code id="display-profile-id">cw-loading</code></span>
+        <span id="sync-time-info">Last Synced: Never</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header & Navigation -->
+  <header class="header-wrapper">
+    <div class="container header-container">
+      <div class="logo" id="logo-home" role="button" tabindex="0" aria-label="CarbonWise AI Home">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 22s8-4 8-10V2C10 8 2 12 2 22z"></path>
+          <path d="M22 22s-8-4-8-10V2c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>CarbonWise AI</span>
+      </div>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li class="nav-item active"><button data-target="dashboard" aria-controls="dashboard-view" aria-selected="true">Dashboard</button></li>
+          <li class="nav-item"><button data-target="assessment" aria-controls="assessment-view" aria-selected="false">Assessment</button></li>
+          <li class="nav-item"><button data-target="simulator" aria-controls="simulator-view" aria-selected="false">Simulator</button></li>
+          <li class="nav-item"><button data-target="challenges" aria-controls="challenges-view" aria-selected="false">Challenges</button></li>
+          <li class="nav-item"><button data-target="badges" aria-controls="badges-view" aria-selected="false">Achievements</button></li>
+          <li class="nav-item"><button data-target="diagnostics" aria-controls="diagnostics-view" aria-selected="false">Diagnostics</button></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn-icon" id="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle Theme">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Default theme Moon icon -->
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button class="btn btn-secondary" id="open-settings" aria-label="Open Sync and Database Settings">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Settings
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Panel Container -->
+  <main id="main-content" tabindex="-1">
+    <div class="container">
+
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="dashboard" class="app-view active" aria-labelledby="dash-title">
+        <h1 id="dash-title" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Carbon Journey Dashboard</h1>
+        
+        <!-- Welcome Jumbotron -->
+        <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(6, 95, 70, 0.2), rgba(16, 185, 129, 0.05));">
+          <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Welcome to CarbonWise AI</h2>
+          <p style="color: var(--text-muted); max-width: 700px; font-size: 0.95rem;">
+            Empowering your green transition. Take a quick assessment of your lifestyle habits to compute your carbon footprint score, run simulation tweaks, and set milestones on your reduction roadmap.
+          </p>
+          <button class="btn btn-primary" style="margin-top: 16px;" id="dash-btn-start">Start Smart Assessment</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Left Main Panel -->
+          <div>
+            <!-- Stats -->
+            <div class="stat-group">
+              <div class="stat-card">
+                <span class="stat-label">Annual Footprint</span>
+                <span class="stat-value" id="dash-annual-val">--</span>
+                <span class="stat-change" id="dash-change-val">No record yet</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Monthly Average</span>
+                <span class="stat-value" id="dash-monthly-val">--</span>
+                <span class="stat-label" style="font-size:0.7rem; color: var(--text-muted);">kg CO₂ / month</span>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card" style="margin-bottom: 24px;">
+              <div class="card-header">
+                <h3 class="card-title">Footprint Category Breakdown</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Annual kg CO₂</span>
+              </div>
+              <div class="chart-container" id="dash-breakdown" aria-label="Bar chart showing carbon emissions by category">
+                <!-- Injected dynamically via app.js -->
+                <p style="text-align: center; padding: 40px 0; color: var(--text-muted);">Please complete the assessment to render breakdown chart.</p>
+              </div>
+            </div>
+
+            <!-- Real-world Impact Visualizer (Visual Card Equivalents) -->
+            <div style="margin-bottom: 24px;">
+              <h3 style="font-size: 1.25rem; margin-bottom: 16px;">Real-World Savings Equivalents</h3>
+              <div class="grid-3">
+                <div class="card" style="text-align: center; border-top: 4px solid var(--color-success);">
+                  <div class="badge-icon-wrap" style="background: rgba(16, 185, 129, 0.05); color: var(--color-success);">🌳</div>
+                  <h4 style="font-size: 1.6rem; font-weight: 800; margin: 8px 0;" id="impact-tree-val">0</h4>
+                  <p class="stat-label" style="font-size:0.75rem;">Trees Planted</p>
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">equivalent CO₂ absorbed yearly</p>
+                </div>
+                <div class="card" style="text-align: center; border-top: 4px solid var(--color-info);">
+                  <div class="badge-icon-wrap" style="background: rgba(59, 130, 246, 0.05); color: var(--color-info);">🚗</div>
+                  <h4 style="font-size: 1.6rem; font-weight: 800; margin: 8px 0;" id="impact-car-val">0 km</h4>
+                  <p class="stat-label" style="font-size:0.75rem;">Driving Avoided</p>
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">gasoline car emissions offset</p>
+                </div>
+                <div class="card" style="text-align: center; border-top: 4px solid var(--color-warning);">
+                  <div class="badge-icon-wrap" style="background: rgba(245, 158, 11, 0.05); color: var(--color-warning);">⚡</div>
+                  <h4 style="font-size: 1.6rem; font-weight: 800; margin: 8px 0;" id="impact-electric-val">0 Days</h4>
+                  <p class="stat-label" style="font-size:0.75rem;">Electricity Saved</p>
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">household usage equivalent</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Carbon Goal Planner & roadmap -->
+            <div class="card" style="margin-bottom: 24px;">
+              <div class="card-header">
+                <h3 class="card-title">Carbon Goal Planner</h3>
+              </div>
+              <div class="goal-setup" id="goal-setup-box">
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+                  Set a target percentage carbon reduction to generate a personalized reduction roadmap.
+                </p>
+                <div class="slider-group">
+                  <div class="slider-meta">
+                    <span class="slider-label" id="goal-slider-label">Target Reduction</span>
+                    <span class="goal-slider-value" id="goal-slider-value">20%</span>
+                  </div>
+                  <input type="range" min="5" max="75" value="20" class="custom-slider" id="goal-percentage-range" aria-labelledby="goal-slider-label">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                  <span style="font-size: 0.85rem;" id="goal-calc-summary">Target Footprint: <strong>--</strong> kg CO₂/year</span>
+                  <button class="btn btn-primary" id="btn-save-goal">Set Goal & Build Roadmap</button>
+                </div>
+              </div>
+              <div id="goal-roadmap-container" style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 24px; display: none;">
+                <h4 style="font-size:1rem; margin-bottom:16px;">Your Customized Reduction Roadmap</h4>
+                <div class="roadmap-timeline" id="goal-timeline-steps">
+                  <!-- Steps injected here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- AI coach personalized card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">AI Sustainability Coach</h3>
+                <span class="status-pill connected" style="background: rgba(16,185,129,0.1); color: var(--primary-base);">Active Advice</span>
+              </div>
+              <div id="dashboard-coach-tip" style="font-size: 0.95rem; line-height: 1.6;">
+                <p style="color: var(--text-muted);">Please complete the Carbon Assessment so the AI Coach can tailor suggestions to your household emissions profile.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side Widget Column -->
+          <div>
+            <!-- Carbon score circle gauge -->
+            <div class="card" style="margin-bottom: 24px; text-align: center;">
+              <h3 class="card-title" style="justify-content: center; margin-bottom: 16px;">Carbon Score</h3>
+              <div class="score-gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 100 100">
+                  <path class="gauge-bg" d="M 50,50 m 0,-40 a 40,40 0 1 1 0,80 a 40,40 0 1 1 0,-80"></path>
+                  <path class="gauge-fill" id="dash-score-fill" stroke-dasharray="251.2" stroke-dashoffset="251.2" d="M 50,50 m 0,-40 a 40,40 0 1 1 0,80 a 40,40 0 1 1 0,-80"></path>
+                </svg>
+                <div class="gauge-info">
+                  <span class="gauge-score" id="dash-score">--</span>
+                  <span class="gauge-label">Score</span>
+                </div>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 12px;" id="dash-score-desc">
+                Scores range from 0 (High footprint) to 100 (Climate Champion limit).
+              </p>
+            </div>
+
+            <!-- Carbon Twin Benchmark comparison widget -->
+            <div class="card" style="margin-bottom: 24px;">
+              <h3 class="card-title" style="margin-bottom: 16px;">Twin Benchmarks</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+                How you compare to reference profiles (lower footprint is better):
+              </p>
+              <div class="benchmark-list" id="twin-comparison">
+                <!-- Benchmarks dynamically rendered -->
+              </div>
+            </div>
+
+            <!-- Timeline history list -->
+            <div class="card">
+              <h3 class="card-title" style="margin-bottom: 16px;">Journey Timeline</h3>
+              <div class="timeline-list" id="timeline-list">
+                <!-- Timeline items dynamically rendered -->
+                <p style="font-size: 0.85rem; color: var(--text-muted); padding: 10px 0;">No history recorded yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. ASSESSMENT VIEW ================= -->
+      <section id="assessment" class="app-view" aria-labelledby="assessment-title">
+        <h1 id="assessment-title" style="font-size: 2rem; margin-bottom: 8px;">Smart Carbon Assessment</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Answer these quick questions regarding your routine lifestyle habits to compute your emission outputs.</p>
+
+        <div class="assessment-container">
+          <!-- Side Steps navigation -->
+          <nav class="assessment-nav" aria-label="Assessment Sections">
+            <button class="btn-tab-nav active" data-step="0"><span class="step-num">1</span> Transportation</button>
+            <button class="btn-tab-nav" data-step="1"><span class="step-num">2</span> Electricity</button>
+            <button class="btn-tab-nav" data-step="2"><span class="step-num">3</span> Food & Diet</button>
+            <button class="btn-tab-nav" data-step="3"><span class="step-num">4</span> Shopping & Waste</button>
+          </nav>
+
+          <!-- Main form block -->
+          <div class="assessment-content">
+            <div class="assessment-indicator" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" aria-label="Assessment Progress">
+              <div class="assessment-indicator-bar" id="assessment-progress-bar" style="width: 25%;"></div>
+            </div>
+
+            <form id="assessment-form" novalidate>
+              
+              <!-- STEP 1: TRANSPORTATION -->
+              <div class="form-step-section active" data-step-index="0">
+                <h2 style="font-size: 1.4rem; margin-bottom: 20px; color: var(--primary-base);">Transportation Habits</h2>
+                
+                <div class="form-group">
+                  <label class="form-label" for="carDistance">Car Driving Distance (km/week)</label>
+                  <p class="form-desc">Average distance you drive a personal car per week. Enter 0 if you do not drive.</p>
+                  <input type="number" class="form-control" id="carDistance" min="0" max="2000" placeholder="e.g. 150" value="0">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="carFuelType">Car Fuel / Engine Type</label>
+                  <p class="form-desc">Select the fuel type of your primary vehicle.</p>
+                  <select class="form-control" id="carFuelType">
+                    <option value="carGasoline">Gasoline (Standard)</option>
+                    <option value="carDiesel">Diesel</option>
+                    <option value="carHybrid">Hybrid (HEV/PHEV)</option>
+                    <option value="carElectric">Electric Vehicle (EV)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="transitDistance">Public Transit Distance (km/week)</label>
+                  <p class="form-desc">Weekly travel on public buses, trains, subways, or trams.</p>
+                  <input type="number" class="form-control" id="transitDistance" min="0" max="2000" placeholder="e.g. 50" value="0">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="flightsShort">Short-Haul Flights per Year (&lt; 3 hours)</label>
+                  <p class="form-desc">Count of regional flights taken annually (one-way trips counted individually).</p>
+                  <input type="number" class="form-control" id="flightsShort" min="0" max="50" placeholder="e.g. 2" value="0">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="flightsLong">Long-Haul Flights per Year (&gt; 3 hours)</label>
+                  <p class="form-desc">Count of continental or international flights taken annually.</p>
+                  <input type="number" class="form-control" id="flightsLong" min="0" max="50" placeholder="e.g. 1" value="0">
+                </div>
+              </div>
+
+              <!-- STEP 2: ELECTRICITY -->
+              <div class="form-step-section" data-step-index="1" style="display: none;">
+                <h2 style="font-size: 1.4rem; margin-bottom: 20px; color: var(--primary-base);">Electricity Consumption</h2>
+
+                <div class="form-group">
+                  <label class="form-label" for="electricityKwh">Household Monthly Electricity (kWh)</label>
+                  <p class="form-desc">Your household monthly electricity usage (refer to your utility bill). Average is ~250-300 kWh.</p>
+                  <input type="number" class="form-control" id="electricityKwh" min="0" max="5000" placeholder="e.g. 250" value="0">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="renewableShare">Renewable/Solar Energy Share (%)</label>
+                  <p class="form-desc">Percentage of your electricity derived from solar panels or a green utility program.</p>
+                  <input type="number" class="form-control" id="renewableShare" min="0" max="100" placeholder="e.g. 20" value="0">
+                </div>
+              </div>
+
+              <!-- STEP 3: FOOD & DIET -->
+              <div class="form-step-section" data-step-index="2" style="display: none;">
+                <h2 style="font-size: 1.4rem; margin-bottom: 20px; color: var(--primary-base);">Food & Diet Habits</h2>
+
+                <div class="form-group">
+                  <label class="form-label" for="dietType">Primary Diet Type</label>
+                  <p class="form-desc">Select the category that best aligns with your weekly food choices.</p>
+                  <select class="form-control" id="dietType">
+                    <option value="dietMeatHeavy">Meat-Heavy (Eat beef/pork daily)</option>
+                    <option value="dietAverage">Average (Balanced meat, dairy, and veggies)</option>
+                    <option value="dietVegetarian">Vegetarian (No meat, eat dairy/eggs)</option>
+                    <option value="dietVegan">Vegan (100% plant-based)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- STEP 4: SHOPPING & WASTE -->
+              <div class="form-step-section" data-step-index="3" style="display: none;">
+                <h2 style="font-size: 1.4rem; margin-bottom: 20px; color: var(--primary-base);">Shopping & Waste Management</h2>
+
+                <div class="form-group">
+                  <label class="form-label" for="shoppingSpend">Monthly Shopping Spend ($)</label>
+                  <p class="form-desc">Average monthly money spent on new clothing, electronics, appliances, and luxury goods.</p>
+                  <input type="number" class="form-control" id="shoppingSpend" min="0" max="10000" placeholder="e.g. 100" value="0">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="wasteVolume">Weekly Household Trash Volume</label>
+                  <p class="form-desc">Approximate quantity of landfill trash your household produces weekly.</p>
+                  <select class="form-control" id="wasteVolume">
+                    <option value="wasteBaseLow">Low (1 standard garbage bag or less)</option>
+                    <option value="wasteBaseMedium" selected>Medium (2 to 3 standard bags)</option>
+                    <option value="wasteBaseHigh">High (4 or more standard bags)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="recyclingLevel">Recycling & Sorting Level</label>
+                  <p class="form-desc">How thoroughly do you separate recyclables (paper, plastic, metal, compost)?</p>
+                  <select class="form-control" id="recyclingLevel">
+                    <option value="recyclingHigh">Meticulous (Recycle everything permitted)</option>
+                    <option value="recyclingMedium" selected>Moderate (Recycle paper and clean containers)</option>
+                    <option value="recyclingNone">None (Send all trash to landfill)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Form Buttons -->
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="btn-form-prev" style="visibility: hidden;">Previous</button>
+                <button type="button" class="btn btn-primary" id="btn-form-next">Next</button>
+                <button type="submit" class="btn btn-primary" id="btn-form-submit" style="display: none;">Calculate Footprint</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. SIMULATOR VIEW ================= -->
+      <section id="simulator" class="app-view" aria-labelledby="sim-title">
+        <h1 id="sim-title" style="font-size: 2rem; margin-bottom: 8px;">Carbon Reduction Simulator</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Drag the sliders below to simulate eco lifestyle changes and view projected footprint updates in real time.</p>
+
+        <div id="simulator-no-data" class="card" style="text-align: center; padding: 40px; margin-bottom: 24px;">
+          <p style="color: var(--text-muted); margin-bottom: 16px;">You must complete the carbon assessment questionnaire first to initialize the simulator baseline.</p>
+          <button class="btn btn-primary" id="sim-btn-goto-calc">Go to Carbon Assessment</button>
+        </div>
+
+        <div class="simulator-layout" id="simulator-workspace" style="display: none;">
+          <!-- Controls Panel -->
+          <div class="card">
+            <h2 style="font-size: 1.25rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Simulated Lifestyle Changes</h2>
+            
+            <div class="slider-group">
+              <div class="slider-meta">
+                <label class="slider-label" for="sim-car-reduction">Reduce Car Travel</label>
+                <span class="slider-value" id="sim-car-reduction-val">0%</span>
+              </div>
+              <input type="range" class="custom-slider" id="sim-car-reduction" min="0" max="100" value="0">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 32px;">
+              <label class="form-label" for="sim-car-fuel">Simulated Car Engine Type</label>
+              <select class="form-control" id="sim-car-fuel">
+                <option value="carGasoline">Gasoline (Standard)</option>
+                <option value="carDiesel">Diesel</option>
+                <option value="carHybrid">Hybrid (HEV/PHEV)</option>
+                <option value="carElectric">Electric Vehicle (EV)</option>
+              </select>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-meta">
+                <label class="slider-label" for="sim-flights-reduction">Reduce Airplane Travel</label>
+                <span class="slider-value" id="sim-flights-reduction-val">0%</span>
+              </div>
+              <input type="range" class="custom-slider" id="sim-flights-reduction" min="0" max="100" value="0">
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-meta">
+                <label class="slider-label" for="sim-renewable-share">Renewable Power Mix</label>
+                <span class="slider-value" id="sim-renewable-share-val">0%</span>
+              </div>
+              <input type="range" class="custom-slider" id="sim-renewable-share" min="0" max="100" value="0">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 32px;">
+              <label class="form-label" for="sim-diet-type">Simulate Diet Transition</label>
+              <select class="form-control" id="sim-diet-type">
+                <option value="dietMeatHeavy">Meat-Heavy (Eat beef/pork daily)</option>
+                <option value="dietAverage">Average (Balanced diet)</option>
+                <option value="dietVegetarian">Vegetarian (No meat)</option>
+                <option value="dietVegan">Vegan (100% plant-based)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sim-recycling">Simulate Recycling Sorting</label>
+              <select class="form-control" id="sim-recycling">
+                <option value="recyclingNone">None (All landfill waste)</option>
+                <option value="recyclingMedium">Moderate recycling sorting</option>
+                <option value="recyclingHigh">Meticulous recycling & compost</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Real-time Projection Summary -->
+          <div>
+            <div class="card delta-card" style="margin-bottom: 24px; border: 1px solid var(--primary-base);">
+              <span class="stat-label">Carbon Savings Potential</span>
+              <div class="delta-stat" id="sim-projected-savings">0%</div>
+              <div class="delta-label">Footprint reduction from baseline</div>
+              
+              <div style="width: 100%; display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <div style="text-align: left;">
+                  <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Baseline</span>
+                  <p style="font-size:1.25rem; font-weight:700;" id="sim-baseline-val">-- kg</p>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Projected</span>
+                  <p style="font-size:1.25rem; font-weight:700; color:var(--primary-base);" id="sim-projected-val">-- kg</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated Real World Equivalents -->
+            <h3 style="font-size: 1.15rem; margin-bottom: 16px;">Simulated Impact Equivalents</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <div class="card" style="display: flex; align-items: center; gap: 16px; padding: 16px;">
+                <span style="font-size: 2rem;">🌳</span>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700;" id="sim-equiv-trees">0 trees</h4>
+                  <p style="font-size: 0.8rem; color: var(--text-muted);">absorbed carbon equivalence annually</p>
+                </div>
+              </div>
+              <div class="card" style="display: flex; align-items: center; gap: 16px; padding: 16px;">
+                <span style="font-size: 2rem;">🚗</span>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700;" id="sim-equiv-car">0 km</h4>
+                  <p style="font-size: 0.8rem; color: var(--text-muted);">avoided gasoline car emissions equivalent</p>
+                </div>
+              </div>
+              <div class="card" style="display: flex; align-items: center; gap: 16px; padding: 16px;">
+                <span style="font-size: 2rem;">⚡</span>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700;" id="sim-equiv-electric">0 Days</h4>
+                  <p style="font-size: 0.8rem; color: var(--text-muted);">average household electricity savings equivalent</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; text-align: right;">
+              <button class="btn btn-secondary" id="sim-btn-apply" style="display: none;">Apply Simulation to Goals</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. CHALLENGES VIEW ================= -->
+      <section id="challenges" class="app-view" aria-labelledby="challenges-title">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; flex-wrap:wrap; gap:16px;">
+          <h1 id="challenges-title" style="font-size: 2rem;">Eco Challenges System</h1>
+          <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary-base); background: rgba(16,185,129,0.1); padding: 6px 16px; border-radius: var(--radius-sm);" id="challenges-xp-total">Total XP: 0</span>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Join eco-friendly tasks and track your sustainability achievements. Earn experience points (XP) to unlock higher ranks.</p>
+
+        <div class="challenge-grid" id="challenge-list-container">
+          <!-- Dynamic challenge cards -->
+        </div>
+      </section>
+
+      <!-- ================= 5. BADGES VIEW ================= -->
+      <section id="badges" class="app-view" aria-labelledby="badges-title">
+        <h1 id="badges-title" style="font-size: 2rem; margin-bottom: 8px;">Achievement & Badge System</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Your progress unlocks premium badges. Earn achievements by completing assessments and hitting high scores.</p>
+
+        <div class="badge-grid" id="badge-list-container">
+          <!-- Dynamic badges list -->
+        </div>
+
+        <div class="card" style="margin-top: 40px; display: none;" id="certificate-drawer">
+          <h2 style="font-size: 1.25rem; margin-bottom: 16px;">Download Your Certificate</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+            Download a high-resolution, certified document highlighting your environmental commitment badge milestone.
+          </p>
+          <div class="certificate-preview-wrap">
+            <canvas class="certificate-canvas" id="certificate-canvas"></canvas>
+            <a class="btn btn-primary" id="btn-download-cert" download="carbonwise-certificate.png" href="#">Download PNG Certificate</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. DIAGNOSTICS VIEW ================= -->
+      <section id="diagnostics" class="app-view" aria-labelledby="diag-title">
+        <h1 id="diag-title" style="font-size: 2rem; margin-bottom: 8px;">Testing Center</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Perform verification sweeps to validate core calculators, storage fallbacks, state managers, and screen accessibility standards.</p>
+
+        <div class="diagnostic-dashboard">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+            <div>
+              <h2 style="font-size: 1.25rem;">System Validation Diagnostics</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Click the button below to initiate the suite of 8 automated tests.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-run-diagnostics">Run System Diagnostics</button>
+          </div>
+
+          <div class="diagnostic-results" id="diagnostics-log">
+            <p style="color: var(--text-muted); text-align: center; padding: 20px 0;">No tests executed in this session. Click "Run System Diagnostics" to begin.</p>
+          </div>
+
+          <div class="diag-summary" id="diagnostics-summary" style="display: none;">
+            <span>Diagnostics Result</span>
+            <span id="diagnostics-summary-text">0/8 System Checks Passed</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-container">
+      <div class="footer-grid">
+        <div>
+          <p style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">CarbonWise AI</p>
+          <p style="max-width: 400px; font-size: 0.8rem;">
+            A professional client-side platform helping individuals track, simulate, and reduce their carbon footprint.
+          </p>
+        </div>
+        <div>
+          <ul class="footer-links">
+            <li><a href="#privacy-modal" id="link-privacy">Privacy Notice</a></li>
+            <li><a href="#about-modal" id="link-about">About Platform</a></li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 16px; font-size: 0.75rem; text-align: center;">
+        &copy; 2026 CarbonWise AI. Built for environmental impact tracking. Fully functional locally.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= SETTINGS SIDE DRAWER / MODAL ================= -->
+  <div class="modal-backdrop" id="modal-settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="settings-title" style="font-size: 1.4rem;">Settings & Sync Manager</h2>
+        <button class="modal-close" id="close-settings" aria-label="Close Settings Modal">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div style="display:flex; border-bottom: 1px solid var(--border-color); margin-bottom:20px;">
+        <button class="btn btn-tab-nav active" style="width:auto; border-radius:0; border-bottom: 2px solid var(--primary-base); padding: 8px 16px;" id="tab-btn-sync">Profile Sync</button>
+        <button class="btn btn-tab-nav" style="width:auto; border-radius:0; padding: 8px 16px;" id="tab-btn-firebase">Firebase Setup</button>
+      </div>
+
+      <!-- Settings Tab 1: Profile Sync -->
+      <div id="settings-tab-sync">
+        <div class="form-group">
+          <label class="form-label" for="settings-profile-id">Your Profile Sync ID</label>
+          <p class="form-desc">Auto-generated for your browser session. Use this key to load data on another device.</p>
+          <div style="display:flex; gap:8px;">
+            <input type="text" class="form-control" id="settings-profile-id" readonly>
+            <button class="btn btn-secondary" id="btn-copy-profile" aria-label="Copy Profile ID">Copy</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+          <label class="form-label" for="settings-sync-key-input">Sync with Existing Profile</label>
+          <p class="form-desc">Enter another Profile ID to pull and sync your historical details.</p>
+          <div style="display:flex; gap:8px;">
+            <input type="text" class="form-control" id="settings-sync-key-input" placeholder="e.g. cw-a3f2d1e5">
+            <button class="btn btn-primary" id="btn-load-profile">Sync</button>
+          </div>
+          <span id="sync-load-error" style="display:block; font-size:0.8rem; color:var(--color-danger); margin-top:8px;"></span>
+        </div>
+
+        <div class="form-group" style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+          <label class="form-label" style="color:var(--color-danger);">Danger Zone</label>
+          <p class="form-desc">Completely clear all assessments, challenge completions, and badges stored in this browser.</p>
+          <button class="btn btn-secondary" id="btn-clear-data" style="color:var(--color-danger); border-color:rgba(239, 68, 68, 0.2); background:rgba(239, 68, 68, 0.02);">Clear All Data</button>
+        </div>
+      </div>
+
+      <!-- Settings Tab 2: Firebase Credentials -->
+      <div id="settings-tab-firebase" style="display: none;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          Connect your own Firebase Firestore instance. Enter your Web App SDK config keys below. Leave fields empty to revert to Local Sandbox Mode.
+        </p>
+        <form id="firebase-config-form">
+          <div class="form-group">
+            <label class="form-label" for="fb-apiKey">API Key</label>
+            <input type="text" class="form-control" id="fb-apiKey" placeholder="AIzaSy...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fb-authDomain">Auth Domain</label>
+            <input type="text" class="form-control" id="fb-authDomain" placeholder="your-app.firebaseapp.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fb-projectId">Project ID</label>
+            <input type="text" class="form-control" id="fb-projectId" placeholder="your-app-id">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fb-storageBucket">Storage Bucket</label>
+            <input type="text" class="form-control" id="fb-storageBucket" placeholder="your-app.appspot.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fb-messagingSenderId">Messaging Sender ID</label>
+            <input type="text" class="form-control" id="fb-messagingSenderId" placeholder="123456789">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fb-appId">App ID</label>
+            <input type="text" class="form-control" id="fb-appId" placeholder="1:12345:web:abcd...">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Connect Firebase & Sync</button>
+        </form>
+        <span id="firebase-conn-error" style="display:block; font-size:0.8rem; color:var(--color-danger); margin-top:8px;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PRIVACY POLICY MODAL ================= -->
+  <div class="modal-backdrop" id="modal-privacy" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="privacy-title" style="font-size: 1.4rem;">Privacy Notice</h2>
+        <button class="modal-close" id="close-privacy" aria-label="Close Privacy Modal">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+        <p style="margin-bottom: 12px;"><strong>Your Data, Your Control.</strong></p>
+        <p style="margin-bottom: 12px;">
+          CarbonWise AI is designed with an offline-first privacy architecture. By default, all carbon calculations, assessments, goals, and challenge completions are stored locally in your browser's <code>localStorage</code> database.
+        </p>
+        <p style="margin-bottom: 12px;">
+          If you choose to enable the optional Firebase integration, your data will be synchronized securely with your designated Google Firebase Firestore database using your anonymous Profile Sync ID. No personal identification details (such as names, passwords, or emails) are ever requested, stored, or processed by CarbonWise AI.
+        </p>
+        <p>You can inspect, export, or completely delete your local and cloud records at any time using the Settings panel.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ABOUT MODAL ================= -->
+  <div class="modal-backdrop" id="modal-about" role="dialog" aria-modal="true" aria-labelledby="about-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="about-title" style="font-size: 1.4rem;">About CarbonWise AI</h2>
+        <button class="modal-close" id="close-about" aria-label="Close About Modal">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+        <p style="margin-bottom: 12px;">
+          <strong>CarbonWise AI</strong> is a premium client-side carbon tracking and education dashboard.
+        </p>
+        <p style="margin-bottom: 12px;">
+          Our calculation factors are sourced directly from established environmental frameworks, including the US Environmental Protection Agency (EPA) emissions databases and the Intergovernmental Panel on Climate Change (IPCC) conversion guidelines.
+        </p>
+        <p>
+          By allowing users to run interactive simulation models, they can instantly visualize how switching to renewables, reducing flight schedules, or altering dietary practices contributes to localized climate goals.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic JS Entry module -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
